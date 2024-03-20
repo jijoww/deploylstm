@@ -57,7 +57,7 @@ stock_data = get_data(start_date, end_date, csv_path)
 
 
 # Fungsi untuk melatih model
-def train_model(data, seq_length=1000, num_epochs=500, hidden_size=35, num_layers=1, num_days_to_predict=5):
+def train_model(data, seq_length=10, num_epochs=50, hidden_size=100, num_layers=1, num_days_to_predict=5):
     # Preprocessing data
     scaler = MinMaxScaler(feature_range=(0, 1))
     data['Close'] = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
