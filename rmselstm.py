@@ -120,8 +120,8 @@ def main():
     # Input parameter dari pengguna
     start_date = st.date_input("Pilih tanggal awal:", pd.to_datetime('2017-12-16'))
     end_date = st.date_input("Pilih tanggal akhir:", pd.to_datetime('2024-02-16'))
-    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=500, value=100)
-    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=1000, value=500)
+    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=500, value=30)
+    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=1000, value=100)
     hidden_size = st.slider("Pilih ukuran hidden layer:", min_value=1, max_value=1000, value=100)
     num_layers = st.slider("Pilih jumlah layer LSTM:", min_value=1, max_value=3, value=1)
     num_days_to_predict = st.slider("Pilih jumlah hari yang akan diprediksi:", min_value=1, max_value=365, value=1)
