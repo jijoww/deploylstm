@@ -1,16 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  7 02:39:52 2024
 
-@author: Użytkownik
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
 
 import streamlit as st
 import pandas as pd
@@ -20,7 +8,6 @@ import torch.nn as nn
 from sklearn.preprocessing import MinMaxScaler
 import plotly.express as px
 from sklearn.metrics import mean_squared_error, mean_squared_log_error
-
 
 
 class LSTMModel(nn.Module):
@@ -48,7 +35,6 @@ def predict_future_prices(model, scaler, initial_data, num_days=20):
     return future_prices_denormalized.flatten()
 
 
-
 def get_data(start_date, end_date, csv_path):
     # Baca data dari file CSV
     data = pd.read_csv(csv_path)
@@ -73,7 +59,7 @@ stock_data = get_data(start_date, end_date, csv_path)
 
 
 # Fungsi untuk melatih model
-def train_model(data, seq_length=10, num_epochs=50, hidden_size=64, num_layers=1, num_days_to_predict=1):
+def train_model(data, seq_length=1000, num_epochs=500, hidden_size=35, num_layers=1, num_days_to_predict=5):
     # Preprocessing data
     scaler = MinMaxScaler(feature_range=(0, 1))
     data['Close'] = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
@@ -111,6 +97,7 @@ def train_model(data, seq_length=10, num_epochs=50, hidden_size=64, num_layers=1
 
         optimizer.zero_grad()
         outputs = model(inputs)
+        labels = labels.view(-1, 1)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -135,9 +122,9 @@ def main():
     # Input parameter dari pengguna
     start_date = st.date_input("Pilih tanggal awal:", pd.to_datetime('2017-12-16'))
     end_date = st.date_input("Pilih tanggal akhir:", pd.to_datetime('2024-02-16'))
-    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=500, value=10)
-    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=1000, value=50)
-    hidden_size = st.slider("Pilih ukuran hidden layer:", min_value=1, max_value=1000, value=64)
+    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=500, value=100)
+    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=1000, value=500)
+    hidden_size = st.slider("Pilih ukuran hidden layer:", min_value=1, max_value=1000, value=100)
     num_layers = st.slider("Pilih jumlah layer LSTM:", min_value=1, max_value=3, value=1)
     num_days_to_predict = st.slider("Pilih jumlah hari yang akan diprediksi:", min_value=1, max_value=365, value=1)
 
