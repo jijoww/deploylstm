@@ -3,23 +3,27 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn import Dropout
 from sklearn.preprocessing import MinMaxScaler
 import plotly.express as px
 from sklearn.metrics import mean_squared_error, mean_squared_log_error
 
 
+
 class LSTMModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, output_size):
+    def __init__(self, input_size, hidden_size, num_layers, output_size,dropout):
         super(LSTMModel, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True,dropout=dropout)
+        self.dropout = Dropout(dropout)
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         out, _ = self.lstm(x)
+        out = self.dropout(out)
         out = self.fc(out[:, -1, :])  # Ambil output dari langkah terakhir saja
         return out
     
-def predict_future_prices(model, scaler, initial_data, num_days=20):
+def predict_future_prices(model, scaler, initial_data, num_days=0):
     model.eval()
     with torch.no_grad():
         input_sequence = torch.tensor(initial_data).view(1, len(initial_data), 1).float()
@@ -31,6 +35,7 @@ def predict_future_prices(model, scaler, initial_data, num_days=20):
 
     future_prices_denormalized = scaler.inverse_transform(np.array(future_prices).reshape(-1, 1))
     return future_prices_denormalized.flatten()
+
 
 
 def get_data(start_date, end_date, csv_path):
@@ -57,7 +62,7 @@ stock_data = get_data(start_date, end_date, csv_path)
 
 
 # Fungsi untuk melatih model
-def train_model(data, seq_length=10, num_epochs=50, hidden_size=100, num_layers=1, num_days_to_predict=5):
+def train_model(data, seq_length=0, num_epochs=0, hidden_size=0, num_layers=0, num_days_to_predict=0):
     # Preprocessing data
     scaler = MinMaxScaler(feature_range=(0, 1))
     data['Close'] = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
@@ -78,9 +83,9 @@ def train_model(data, seq_length=10, num_epochs=50, hidden_size=100, num_layers=
     # Inisialisasi model LSTM
     input_size = 1
     output_size = 1
-    model = LSTMModel(input_size, hidden_size, num_layers, output_size)
+    model = LSTMModel(input_size, hidden_size, num_layers, output_size,dropout=0.4)
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.004)
     
     train_losses = []
     rmse_values = []
@@ -120,10 +125,10 @@ def main():
     # Input parameter dari pengguna
     start_date = st.date_input("Pilih tanggal awal:", pd.to_datetime('2017-12-16'))
     end_date = st.date_input("Pilih tanggal akhir:", pd.to_datetime('2024-02-16'))
-    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=500, value=30)
-    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=1000, value=100)
-    hidden_size = st.slider("Pilih ukuran hidden layer:", min_value=1, max_value=1000, value=100)
-    num_layers = st.slider("Pilih jumlah layer LSTM:", min_value=1, max_value=3, value=1)
+    seq_length = st.slider("Pilih panjang sekuens:", min_value=1, max_value=365, value=10)
+    num_epochs = st.slider("Pilih jumlah epoch:", min_value=1, max_value=120, value=50)
+    hidden_size = st.slider("Pilih ukuran hidden layer:", min_value=1, max_value=120, value=10)
+    num_layers = st.slider("Pilih jumlah layer LSTM:", min_value=1, max_value=10, value=1)
     num_days_to_predict = st.slider("Pilih jumlah hari yang akan diprediksi:", min_value=1, max_value=365, value=1)
 
     # Dapatkan data sesuai parameter
